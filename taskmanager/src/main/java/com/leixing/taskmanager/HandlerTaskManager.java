@@ -29,14 +29,13 @@ public class HandlerTaskManager {
     private ExecutorService mExecutorService;
 
     public HandlerTaskManager() {
-        this(Looper.getMainLooper(), null);
+        this(Looper.getMainLooper());
     }
 
-    public HandlerTaskManager(Looper looper, ExecutorService executorService) {
+    public HandlerTaskManager(Looper looper) {
         mTasks = new LinkedList<>();
         mTokenCount = mMaxTokenCount;
         mHandler = new InnerHandler(looper);
-        mExecutorService = executorService;
     }
 
     public void addTask(Runnable task) {
@@ -56,6 +55,11 @@ public class HandlerTaskManager {
             throw new IllegalArgumentException();
         }
         mTokenProduceIntervalMills = tokenProduceIntervalMills;
+        return this;
+    }
+
+    public HandlerTaskManager executorService(ExecutorService executorService) {
+        mExecutorService = executorService;
         return this;
     }
 
