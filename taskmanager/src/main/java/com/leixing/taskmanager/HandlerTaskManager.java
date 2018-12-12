@@ -8,6 +8,7 @@ import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * description : HandlerTaskManager
@@ -16,6 +17,7 @@ import java.util.List;
  * email : leixing1012@qq.com
  * @date : 2018/12/12 15:00
  */
+@SuppressWarnings("WeakerAccess")
 public class HandlerTaskManager {
     private static final int MSG_PRODUCT_TOKEN = 100;
     private final Handler mHandler;
@@ -24,15 +26,17 @@ public class HandlerTaskManager {
     private int mMaxTokenCount = 1;
     private int mTokenCount;
     private int mTokenProduceIntervalMills = 1000;
+    private ExecutorService mExecutorService;
 
     public HandlerTaskManager() {
-        this(Looper.getMainLooper());
+        this(Looper.getMainLooper(), null);
     }
 
-    public HandlerTaskManager(Looper looper) {
+    public HandlerTaskManager(Looper looper, ExecutorService executorService) {
         mTasks = new LinkedList<>();
         mTokenCount = mMaxTokenCount;
         mHandler = new InnerHandler(looper);
+        mExecutorService = executorService;
     }
 
     public void addTask(Runnable task) {
@@ -62,12 +66,20 @@ public class HandlerTaskManager {
 
         for (Iterator<Runnable> iterator = mTasks.iterator(); iterator.hasNext(); ) {
             Runnable task = iterator.next();
-            task.run();
+            executeTask(task);
             iterator.remove();
             mTokenCount--;
             if (mTokenCount == 0) {
                 break;
             }
+        }
+    }
+
+    private void executeTask(Runnable task) {
+        if (mExecutorService != null) {
+            mExecutorService.submit(task);
+        } else {
+            task.run();
         }
     }
 
